@@ -303,3 +303,6 @@ __pycache__/
 # Ignore all local history of files
 .history
 
+### Application Settings
+appsettings.*.json
+appsettings.json

@@ -16,10 +16,13 @@ namespace QandA.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IHubContext<QuestionsHub> _questionHubContext;
 
-        public QuestionsController(IDataRepository dataRepository, IHubContext<QuestionsHub> questionHubContext)
+        private readonly IQuestionCache _cache;
+
+        public QuestionsController(IDataRepository dataRepository, IHubContext<QuestionsHub> questionHubContext, IQuestionCache questionCache)
         {
             _dataRepository = dataRepository;
             _questionHubContext = questionHubContext;
+            _cache = questionCache;
         }
 
         [HttpGet]
@@ -61,12 +64,20 @@ namespace QandA.Controllers
         [HttpGet("{questionId}")]
         public ActionResult<QuestionGetSingleResponse> GetQuestion(int questionId)
         {
-            var question = _dataRepository.GetQuestion(questionId);
+            var question = _cache.Get(questionId);
 
             if (question == null)
             {
-                return NotFound();
+                question = _dataRepository.GetQuestion(questionId);
+
+                if (question == null)
+                {
+                    return NotFound();
+                }
+
+                _cache.Set(question);
             }
+            
 
             return question;
         }
@@ -105,6 +116,8 @@ namespace QandA.Controllers
             questionPutRequest.Content = string.IsNullOrEmpty(questionPutRequest.Content) ? question.Content : questionPutRequest.Content;
 
             var savedQuestion = _dataRepository.PutQuestion(questionId, questionPutRequest);
+            
+            _cache.Remove(savedQuestion.QuestionId);
             return savedQuestion;
         }
 
@@ -119,6 +132,8 @@ namespace QandA.Controllers
             }
 
             _dataRepository.DeleteQuestion(questionId);
+
+            _cache.Remove(questionId);
             return NoContent();
         }
 
@@ -142,12 +157,16 @@ namespace QandA.Controllers
                 Created = DateTime.UtcNow
             });
 
+            _cache.Remove(answerPostRequest.QuestionId.Value);
+
             _questionHubContext.Clients.Group(
                 $"Question-{answerPostRequest.QuestionId.Value}")
                 .SendAsync(
                     "ReceiveQuestion",
                     _dataRepository.GetQuestion(answerPostRequest.QuestionId.Value)
                 );
+
+            
             
             return savedAnswer;
         }

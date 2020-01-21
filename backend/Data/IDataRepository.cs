@@ -14,19 +14,19 @@ namespace QandA.Data
         IEnumerable<QuestionGetManyResponse> GetUnansweredQuestions();
         Task<IEnumerable<QuestionGetManyResponse>> GetUnansweredQuestionsAsync();
 
-        QuestionGetSingleResponse GetQuestion(int questionId);
+        Task<QuestionGetSingleResponse> GetQuestion(int questionId);
 
-        bool QuestionExists(int questionId);
+        Task<bool> QuestionExists(int questionId);
 
         AnswerGetResponse GetAnswer(int answerId);
 
-        QuestionGetSingleResponse PostQuestion(QuestionPostFullRequest question);
+        Task<QuestionGetSingleResponse> PostQuestion(QuestionPostFullRequest question);
 
-        QuestionGetSingleResponse PutQuestion(int questionId, QuestionPutRequest question);
+        Task<QuestionGetSingleResponse> PutQuestion(int questionId, QuestionPutRequest question);
 
         void DeleteQuestion(int questionId);
 
-        AnswerGetResponse PostAnswer(AnswerPostFullRequest answer);
+        Task<AnswerGetResponse> PostAnswer(AnswerPostFullRequest answer);
 
         IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers();
     }

@@ -13,6 +13,11 @@ using Microsoft.Extensions.Logging;
 using DbUp;
 using QandA.Data;
 using QandA.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using QandA.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend
 {
@@ -38,7 +43,7 @@ namespace backend
             .WithTransaction()
             .Build();
 
-            Console.WriteLine(upgrader.IsUpgradeRequired());
+            //Console.WriteLine(upgrader.IsUpgradeRequired());
 
             if (upgrader.IsUpgradeRequired())
             {
@@ -62,6 +67,29 @@ namespace backend
 
             services.AddMemoryCache();
             services.AddSingleton<IQuestionCache, QuestionCache>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.Authority = Configuration["Auth0:Authority"];
+                options.Audience = Configuration["Auth0:Audience"];
+            });
+
+            services.AddHttpClient();
+            services.AddAuthorization(options =>
+                options.AddPolicy("MustBeQuestionAuthor", policy =>
+                    policy.Requirements
+                    .Add(new MustBeQuestionAuthorRequirement())));
+            services.AddScoped<
+                IAuthorizationHandler,
+                MustBeQuestionAuthorHandler>();
+            //services.AddScoped<IAuthorizationHandler, MustBeQuestionAuthorHandler>();
+            services.AddSingleton<
+                IHttpContextAccessor,
+                HttpContextAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -77,7 +105,7 @@ namespace backend
             //app.UseHttpsRedirection();
 
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

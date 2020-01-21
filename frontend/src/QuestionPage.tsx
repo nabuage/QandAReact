@@ -24,7 +24,7 @@ export const QuestionPage: React.FC<RouteComponentProps<RouteParams>> = ({ match
     const setUpSignalRConnection = async (questionId: number) => {
         //Setup connection to real-time signal r api
         const connection = new HubConnectionBuilder()
-            .withUrl("http://localhost:58556/questionshub")
+            .withUrl("http://localhost:5000/questionshub")
             .withAutomaticReconnect()
             .build();
 

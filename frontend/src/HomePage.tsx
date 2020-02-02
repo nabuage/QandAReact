@@ -15,6 +15,8 @@ import { AnyAction } from "redux";
 
 import { getUnansweredQuestionsActionCreator, AppState } from "./Store";
 
+import { useAuth } from "./Auth";
+
 interface Props extends RouteComponentProps {
     getUnansweredQuestions: () => Promise<void>;
     questions: QuestionData[] | null;
@@ -29,16 +31,23 @@ interface Props extends RouteComponentProps {
     const [count, setCount] = useState(0);
 
     /*useEffect(() => {
+        let cancelled = false;
         console.log("first rendered");
         const doGetUnansweredQuestions = async () => {
             const unansweredQuestions = await getUnansweredQuestions();
-            setQuestions(unansweredQuestions);
-            setQuestionsLoading(false);
+            if (!cancelled) {
+                setQuestions(unansweredQuestions);
+                setQuestionsLoading(false);
+            }            
         };
         doGetUnansweredQuestions();
+        return () => {
+            cancelled = true;
+        };
     }, []);*/
 
     useEffect(() => {
+        
         if (questions === null) {
             getUnansweredQuestions();
         }
@@ -49,6 +58,8 @@ interface Props extends RouteComponentProps {
         //console.log("Todo - move to the AskPage");
         history.push("/ask");
     };
+
+    const { isAuthenticated } = useAuth();
 
     return (
         <Page>
@@ -67,7 +78,9 @@ interface Props extends RouteComponentProps {
                     `}
                 >
                     <PageTitle>Unanswered Questions</PageTitle>
-                    <PrimaryButton onClick={handleAskQuestionClick}>Ask a question</PrimaryButton>
+                    { isAuthenticated && (
+                        <PrimaryButton onClick={handleAskQuestionClick}>Ask a question</PrimaryButton>
+                    )}                    
                 </div>
                 {/*<QuestionList data={getUnansweredQuestions()} />*/}
                 {questionsLoading ? (

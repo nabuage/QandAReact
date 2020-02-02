@@ -2,6 +2,9 @@ import { webAPIUrl } from "./AppSettings";
 
 export interface HttpRequest<REQB> {
     path: string;
+    method?: string;
+    body?: REQB;
+    accessToken?: string;
 }
 
 export interface HttpResponse<RESB> extends Response {
@@ -13,12 +16,30 @@ export const http = <REQB, RESB>(
 ): Promise<HttpResponse<RESB>> => {
     return new Promise((resolve, reject) => {
         //make the http request
-        const request = new Request(`${webAPIUrl}${config.path}`);
+        const request = new Request(`${webAPIUrl}${config.path}`, {
+            method: config.method || "get",
+            headers: {
+                "content-type": "application/json"
+            },
+            body: config.body
+                    ? JSON.stringify(config.body)
+                    : undefined
+        });
+
+        if (config.accessToken) {
+            request.headers.set("authorization", `bearer ${config.accessToken}`);
+        }
         let response: HttpResponse<RESB>;
         fetch(request)
             .then(res => {
                 response = res;
-                return res.json();
+
+                if (res.headers.get("Content-Type") || "".indexOf("json") > 0) {
+                    return res.json();
+                }
+                else {
+                    resolve(response);
+                }
             })
             .then(body => {
                 if (response.ok) {

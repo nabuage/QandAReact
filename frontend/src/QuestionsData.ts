@@ -1,4 +1,5 @@
 import { http } from "./http";
+import { getAccessToken } from "./Auth";
 
 export interface QuestionData {
     questionId: number;
@@ -161,10 +162,7 @@ export const searchQuestions = async (criteria: string): Promise<QuestionData[]>
         path: `/questions?search=${criteria}`
       });
 
-      console.log(result);
-
       if (result.ok && result.parsedBody) {
-        console.log(result.parsedBody);
         return result.parsedBody.map(mapQuestionFromServer);
       }
       else {
@@ -187,7 +185,7 @@ export interface PostQuestionData {
 export const postQuestion = async (
     question: PostQuestionData
 ): Promise<QuestionData | undefined> => {
-    await wait(1000);
+    /*await wait(1000);
     const questionId = Math.max( ...questions.map(q => q.questionId)) + 1;
     const newQuestion: QuestionData = {
         ...question,
@@ -195,7 +193,24 @@ export const postQuestion = async (
         answers: []
     };
     questions.push(newQuestion);
-    return newQuestion;
+    return newQuestion;*/
+
+    const accessToken = await getAccessToken();
+
+    try {
+      const result = await http<PostQuestionData, QuestionDataFromServer>({path: "/questions", method: "post", body: question, accessToken});
+
+      if (result.ok && result.parsedBody) {
+          return mapQuestionFromServer(result.parsedBody);
+      }
+      else {
+          return undefined;
+      }
+    }
+    catch (ex) {
+        console.log(ex);
+        return undefined;
+    }
 }
 
 export interface PostAnswerData {
@@ -208,7 +223,7 @@ export interface PostAnswerData {
 export const postAnswer = async (
     answer: PostAnswerData
 ): Promise<AnswerData | undefined> => {
-    await wait(1000);
+    /*await wait(1000);
     const question = questions.filter(
         q => q.questionId === answer.questionId
     )[0];
@@ -217,5 +232,27 @@ export const postAnswer = async (
         ...answer
     };
     question.answers.push(answerInQuestion);
-    return answerInQuestion;
+    return answerInQuestion;*/
+
+    const accessToken = await getAccessToken();
+
+    try {
+        const result = await http<PostAnswerData, AnswerData>({
+            path: "/questions/answer",
+            method: "post",
+            body: answer,
+            accessToken
+        });
+
+        if (result.ok) {
+            return result.parsedBody;
+        }
+        else {
+            return undefined;
+        }
+    }
+    catch (ex) {
+        console.log(ex);
+        return undefined;
+    }
 }

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext, createContext } from "react";
 import createAuth0Client from "@auth0/auth0-spa-js";
 import Auth0Client from "@auth0/auth0-spa-js/dist/typings/Auth0Client";
 import { authSettings } from "./AppSettings";
-import { access } from "fs";
 
 interface Auth0User {
     name: string;
@@ -31,7 +30,6 @@ export const AuthProvider: React.FC = ({ children }) => {
     const [user, setUser] = useState<Auth0User | undefined>(undefined);
     const [auth0Client, setAuth0Client] = useState<Auth0Client>();
     const [loading, setLoading] = useState<boolean>(true);
-    const [loading1, setLoading1] = useState<boolean>(false);
     
     const getAuth0ClientFromState = () => {console.log(auth0Client);
         if (auth0Client === undefined) {

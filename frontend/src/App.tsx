@@ -18,6 +18,7 @@ import { configureStore } from "./Store";
 import { SignOutPage } from "./SignOutPage";
 
 import { AuthProvider } from "./Auth";
+import { AuthorizedPage } from "./AuthorizedPage";
 
 const AskPage = lazy(() => import("./AskPage"));
 
@@ -55,7 +56,9 @@ const App: React.FC = () => {
                     </div>
                   }
                 >
-                  <AskPage />
+                  <AuthorizedPage>
+                      <AskPage />
+                  </AuthorizedPage>                  
                 </Suspense>
               </Route>
               <Route

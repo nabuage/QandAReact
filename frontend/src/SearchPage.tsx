@@ -13,12 +13,20 @@ export const SearchPage: React.FC<RouteComponentProps> = ({ location }) => {
     const search = searchParams.get("criteria") || "";
 
     useEffect(() => {
+        let cancelled = false;
         const doSearch = async (criteria: string) => {
             const foundResults = await searchQuestions(criteria);
-            setQuestions(foundResults);
+
+            if (!cancelled) {
+                setQuestions(foundResults);
+            }            
         };
 
         doSearch(search);
+
+        return () => {
+            cancelled = true;
+        };
     }, [search]);
 
     return <Page title="Search Results">
